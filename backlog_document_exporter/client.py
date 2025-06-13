@@ -162,7 +162,9 @@ class BacklogClient:
 
         Uses ``GET /api/v2/documents/:documentId/attachments/:attachmentId``.
         ``filename`` can be supplied to override the name derived from
-        ``Content-Disposition``.
+        ``Content-Disposition``. If a file with the same name already exists in
+        ``output_dir``, ``_1``, ``_2`` and so on are appended before the file
+        extension so that existing files are not overwritten.
         """
 
         response = self._request(
@@ -176,7 +178,13 @@ class BacklogClient:
         if not filename:
             filename = parsed_name or str(attachment_id)
 
+        base, ext = os.path.splitext(filename)
         path = os.path.join(output_dir, filename)
+        counter = 1
+        while os.path.exists(path):
+            path = os.path.join(output_dir, f"{base}_{counter}{ext}")
+            counter += 1
+
         with open(path, "wb") as f:
             f.write(response.content)
         return path
