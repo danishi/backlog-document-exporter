@@ -32,6 +32,7 @@ python3 -m backlog_document_exporter.cli list
 python3 -m backlog_document_exporter.cli tree
 python3 -m backlog_document_exporter.cli info <document_id>
 python3 -m backlog_document_exporter.cli download <document_id> [output_dir]
+python3 -m backlog_document_exporter.cli export [output_dir]
 ```
 
 If `output_dir` is omitted, files are saved to the current directory.
@@ -45,6 +46,8 @@ https://BACKLOG_SPACE_DOMAIN/document/BACKLOG_PROJECT_KEY/<document_id>
 The `tree` command prints a hierarchical view of the documents and appends the same URL after each document title.
 
 `<document_id>` is the identifier shown in the list or tree output. All command output other than downloaded files is printed in Markdown.
+
+The `export` command downloads all documents in the current project, recreating the document tree as directories. Each document's content is saved as `document.md` alongside any attachments.
 
 ## Reference
 
