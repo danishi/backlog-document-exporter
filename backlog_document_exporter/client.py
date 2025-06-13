@@ -22,7 +22,12 @@ class RateLimiter:
 
 class BacklogClient:
     def __init__(
-        self, space_domain: str, api_key: str, project_key: str, *, verify_ssl: bool = True
+        self,
+        space_domain: str,
+        api_key: str,
+        project_key: str,
+        *,
+        verify_ssl: bool = True,
     ):
         self.space_domain = space_domain
         self.api_key = api_key
@@ -79,16 +84,12 @@ class BacklogClient:
             ) from exc
         if raw:
             return response
-        if response.headers.get("Content-Type", "").startswith(
-            "application/json"
-        ):
+        if response.headers.get("Content-Type", "").startswith("application/json"):
             return response.json()
         return response.content
 
     def get_project_id(self) -> int:
-        statuses = self._request(
-            "GET", f"/projects/{self.project_key}/statuses"
-        )
+        statuses = self._request("GET", f"/projects/{self.project_key}/statuses")
         if not statuses:
             raise RuntimeError("No statuses found for project")
         return int(statuses[0]["projectId"])
@@ -122,9 +123,7 @@ class BacklogClient:
         documents: List[Dict[str, Any]] = []
         offset = 0
         while True:
-            page = self.get_document_list_page(
-                project_id, offset=offset, count=count
-            )
+            page = self.get_document_list_page(project_id, offset=offset, count=count)
             documents.extend(page)
             if len(page) < count:
                 break
@@ -132,16 +131,12 @@ class BacklogClient:
         return documents
 
     def get_document_tree(self, project_id: int) -> Dict[str, Any]:
-        return self._request(
-            "GET", "/documents/tree", {"projectIdOrKey": project_id}
-        )
+        return self._request("GET", "/documents/tree", {"projectIdOrKey": project_id})
 
     def get_document_info(self, document_id: str) -> Dict[str, Any]:
         return self._request("GET", f"/documents/{document_id}")
 
-    def get_document_attachments(
-        self, document_id: str
-    ) -> List[Dict[str, Any]]:
+    def get_document_attachments(self, document_id: str) -> List[Dict[str, Any]]:
         """Return a list of attachments for a document.
 
         The Backlog Document API does not provide a dedicated endpoint for
@@ -156,24 +151,46 @@ class BacklogClient:
         return attachments
 
     def download_attachment(
-        self, document_id: str, attachment_id: int, output_dir: str
+        self,
+        document_id: str,
+        attachment_id: int,
+        output_dir: str,
+        *,
+        filename: str | None = None,
     ) -> str:
         """Download an attachment.
 
         Uses ``GET /api/v2/documents/:documentId/attachments/:attachmentId``.
+        ``filename`` can be supplied to override the name derived from
+        ``Content-Disposition``.
         """
+
         response = self._request(
             "GET",
             f"/documents/{document_id}/attachments/{attachment_id}",
             raw=True,
         )
+
         disposition = response.headers.get("Content-Disposition", "")
-        filename = None
-        if "filename=" in disposition:
-            filename = disposition.split("filename=")[-1].strip("\"")
+        parsed_name = self._parse_filename(disposition)
         if not filename:
-            filename = str(attachment_id)
+            filename = parsed_name or str(attachment_id)
+
         path = os.path.join(output_dir, filename)
         with open(path, "wb") as f:
             f.write(response.content)
         return path
+
+    @staticmethod
+    def _parse_filename(disposition: str) -> str | None:
+        """Extract a filename from a Content-Disposition header."""
+        disposition = disposition or ""
+        if "filename*=" in disposition:
+            part = disposition.split("filename*=")[-1].split(";")[0].strip()
+            if "''" in part:
+                part = part.split("''", 1)[1]
+            return requests.utils.unquote(part.strip('"'))
+        if "filename=" in disposition:
+            part = disposition.split("filename=")[-1].split(";")[0].strip()
+            return part.strip('"')
+        return None

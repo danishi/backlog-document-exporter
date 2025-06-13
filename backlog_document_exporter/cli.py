@@ -67,7 +67,12 @@ def download_attachments(
     os.makedirs(output_dir, exist_ok=True)
     attachments = client.get_document_attachments(document_id)
     for att in attachments:
-        path = client.download_attachment(document_id, att["id"], output_dir)
+        path = client.download_attachment(
+            document_id,
+            att["id"],
+            output_dir,
+            filename=att.get("name"),
+        )
         print(f"Downloaded {att['name']} -> {path}")
 
 
@@ -81,9 +86,7 @@ def main() -> None:
     info = subparsers.add_parser("info", help="Show document info")
     info.add_argument("document_id")
 
-    dl = subparsers.add_parser(
-        "download", help="Download document attachments"
-    )
+    dl = subparsers.add_parser("download", help="Download document attachments")
     dl.add_argument("document_id")
     dl.add_argument(
         "output",
