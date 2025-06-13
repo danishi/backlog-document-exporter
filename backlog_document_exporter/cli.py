@@ -119,6 +119,8 @@ def export_all_documents(client: BacklogClient, output_dir: str = ".") -> None:
         info = client.get_document_info(doc_id)
         content = info.get("content") or info.get("text") or ""
         with open(os.path.join(dir_path, "document.md"), "w", encoding="utf-8") as f:
+            f.write(_dict_to_markdown(info))
+            f.write("\n\n")
             f.write(content)
         download_attachments(client, doc_id, dir_path)
 

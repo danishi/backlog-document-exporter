@@ -47,7 +47,7 @@ The `tree` command prints a hierarchical view of the documents and appends the s
 
 `<document_id>` is the identifier shown in the list or tree output. All command output other than downloaded files is printed in Markdown.
 
-The `export` command downloads all documents in the current project, recreating the document tree as directories. Each document's content is saved as `document.md` alongside any attachments.
+The `export` command downloads all documents in the current project, recreating the document tree as directories. Each document's metadata and content are saved to `document.md` alongside any attachments.
 
 ## Reference
 
