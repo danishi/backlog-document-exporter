@@ -14,9 +14,9 @@ BACKLOG_PROJECT_KEY=PROJECTKEY
 Create a virtual environment in `.venv` and install the dependencies:
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Activate the environment before using the commands below.
@@ -24,10 +24,10 @@ Activate the environment before using the commands below.
 ## Usage
 
 ```
-python -m backlog_document_exporter.cli list
-python -m backlog_document_exporter.cli tree
-python -m backlog_document_exporter.cli info <document_id>
-python -m backlog_document_exporter.cli download <document_id> <output_dir>
+python3 -m backlog_document_exporter.cli list
+python3 -m backlog_document_exporter.cli tree
+python3 -m backlog_document_exporter.cli info <document_id>
+python3 -m backlog_document_exporter.cli download <document_id> <output_dir>
 ```
 
 `<document_id>` is the identifier shown in the list or tree output.
