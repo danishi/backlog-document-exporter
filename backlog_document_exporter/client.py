@@ -87,10 +87,43 @@ class BacklogClient:
             raise RuntimeError("No statuses found for project")
         return int(statuses[0]["projectId"])
 
-    def get_document_list(self, project_id: int) -> List[Dict[str, Any]]:
-        return self._request(
-            "GET", "/documents", {"projectId[]": project_id}
-        )
+    def get_document_list_page(
+        self, project_id: int, *, offset: int, count: int = 100
+    ) -> List[Dict[str, Any]]:
+        """Retrieve a single page of documents.
+
+        ``offset`` must be zero or a positive integer. ``count`` specifies the
+        maximum number of items to return (1-100).
+        """
+        params = {
+            "projectId[]": project_id,
+            "offset": offset,
+            "count": count,
+        }
+        return self._request("GET", "/documents", params)
+
+    def get_document_list(
+        self, project_id: int, *, count: int = 100
+    ) -> List[Dict[str, Any]]:
+        """Retrieve all documents for a project.
+
+        The API requires the ``offset`` parameter, so documents are fetched
+        recursively until all pages have been retrieved.
+        """
+        if count < 1 or count > 100:
+            raise ValueError("count must be between 1 and 100")
+
+        documents: List[Dict[str, Any]] = []
+        offset = 0
+        while True:
+            page = self.get_document_list_page(
+                project_id, offset=offset, count=count
+            )
+            documents.extend(page)
+            if len(page) < count:
+                break
+            offset += count
+        return documents
 
     def get_document_tree(self, project_id: int) -> Dict[str, Any]:
         return self._request(

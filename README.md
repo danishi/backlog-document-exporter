@@ -33,6 +33,9 @@ python3 -m backlog_document_exporter.cli info <document_id>
 python3 -m backlog_document_exporter.cli download <document_id> <output_dir>
 ```
 
+The ``list`` command automatically fetches all pages of results using the
+required ``offset`` parameter of the Backlog API.
+
 `<document_id>` is the identifier shown in the list or tree output.
 
 All output except for downloaded files is printed in Markdown format.
