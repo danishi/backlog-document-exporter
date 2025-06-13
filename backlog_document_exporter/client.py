@@ -21,11 +21,14 @@ class RateLimiter:
 
 
 class BacklogClient:
-    def __init__(self, space_domain: str, api_key: str, project_key: str):
+    def __init__(
+        self, space_domain: str, api_key: str, project_key: str, *, verify_ssl: bool = True
+    ):
         self.space_domain = space_domain
         self.api_key = api_key
         self.project_key = project_key
         self.base_url = f"https://{space_domain}/api/v2"
+        self.verify_ssl = verify_ssl
         self.rate_limiter = RateLimiter()
 
     @classmethod
@@ -34,12 +37,17 @@ class BacklogClient:
         api_key = os.getenv("BACKLOG_API_KEY")
         project_key = os.getenv("BACKLOG_PROJECT_KEY")
         space_domain = os.getenv("BACKLOG_SPACE_DOMAIN")
+        verify_ssl = os.getenv("BACKLOG_SSL_VERIFY", "true").lower() in (
+            "1",
+            "true",
+            "yes",
+        )
         if not api_key or not project_key or not space_domain:
             raise ValueError(
                 "BACKLOG_API_KEY, BACKLOG_PROJECT_KEY and "
                 "BACKLOG_SPACE_DOMAIN must be set"
             )
-        return cls(space_domain, api_key, project_key)
+        return cls(space_domain, api_key, project_key, verify_ssl=verify_ssl)
 
     def _request(
         self,
@@ -57,7 +65,10 @@ class BacklogClient:
             params = {}
         params["apiKey"] = self.api_key
         response = requests.request(
-            method, f"{self.base_url}{path}", params=params
+            method,
+            f"{self.base_url}{path}",
+            params=params,
+            verify=self.verify_ssl,
         )
         response.raise_for_status()
         if raw:

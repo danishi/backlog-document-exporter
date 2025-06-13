@@ -7,7 +7,10 @@ from a `.env` file. Copy `.env.example` and set the following values:
 BACKLOG_SPACE_DOMAIN=your-space.backlog.com
 BACKLOG_API_KEY=your-api-key
 BACKLOG_PROJECT_KEY=PROJECTKEY
+BACKLOG_SSL_VERIFY=true
 ```
+
+Set `BACKLOG_SSL_VERIFY` to `false` to disable TLS certificate verification.
 
 ## Setup
 
