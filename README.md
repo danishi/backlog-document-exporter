@@ -9,6 +9,18 @@ BACKLOG_API_KEY=your-api-key
 BACKLOG_PROJECT_KEY=PROJECTKEY
 ```
 
+## Setup
+
+Create a virtual environment in `.venv` and install the dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+Activate the environment before using the commands below.
+
 ## Usage
 
 ```
