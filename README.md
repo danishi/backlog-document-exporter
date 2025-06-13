@@ -42,6 +42,8 @@ The `list` command automatically fetches all pages using the required `offset` p
 https://BACKLOG_SPACE_DOMAIN/document/BACKLOG_PROJECT_KEY/<document_id>
 ```
 
+The `tree` command prints a hierarchical view of the documents and appends the same URL after each document title.
+
 `<document_id>` is the identifier shown in the list or tree output. All command output other than downloaded files is printed in Markdown.
 
 ## Reference
