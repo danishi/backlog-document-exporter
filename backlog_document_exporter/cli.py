@@ -3,6 +3,8 @@ import json
 import os
 from typing import Any, Dict, List
 
+from tqdm import tqdm
+
 from .client import BacklogClient
 
 
@@ -82,6 +84,47 @@ def download_attachments(
         print(f"Downloaded {att['name']} -> {path}")
 
 
+def safe_name(name: str) -> str:
+    """Return a filesystem-safe name."""
+    return "".join("_" if c in "\\/" else c for c in name)
+
+
+def export_all_documents(client: BacklogClient, output_dir: str = ".") -> None:
+    print("Fetching document tree...")
+    project_id = client.get_project_id()
+    tree = client.get_document_tree(project_id)
+
+    nodes = tree.get("activeTree", {}).get("children", [])
+    docs: List[tuple[str, List[str]]] = []
+
+    def gather(nodes: List[Dict[str, Any]], path: List[str]) -> None:
+        for node in nodes:
+            name = safe_name(node.get("name", ""))
+            children = node.get("children", [])
+            new_path = path + [name]
+            if "id" in node:
+                docs.append((str(node["id"]), new_path))
+            if children:
+                gather(children, new_path)
+
+    gather(nodes, [])
+
+    print(f"Creating directory tree at {output_dir}...")
+    for _, parts in docs:
+        os.makedirs(os.path.join(output_dir, *parts), exist_ok=True)
+
+    print("Downloading documents...")
+    for doc_id, parts in tqdm(docs, desc="Documents", unit="doc"):
+        dir_path = os.path.join(output_dir, *parts)
+        info = client.get_document_info(doc_id)
+        content = info.get("content") or info.get("text") or ""
+        with open(os.path.join(dir_path, "document.md"), "w", encoding="utf-8") as f:
+            f.write(_dict_to_markdown(info))
+            f.write("\n\n")
+            f.write(content)
+        download_attachments(client, doc_id, dir_path)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Backlog Document Exporter")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -101,6 +144,16 @@ def main() -> None:
         help="Output directory (default: current directory)",
     )
 
+    export_all = subparsers.add_parser(
+        "export", help="Export all documents and attachments"
+    )
+    export_all.add_argument(
+        "output",
+        nargs="?",
+        default=".",
+        help="Output directory (default: current directory)",
+    )
+
     args = parser.parse_args()
 
     client = BacklogClient.from_env()
@@ -113,6 +166,8 @@ def main() -> None:
         print_document_info(client, args.document_id)
     elif args.command == "download":
         download_attachments(client, args.document_id, args.output)
+    elif args.command == "export":
+        export_all_documents(client, args.output)
 
 
 if __name__ == "__main__":
