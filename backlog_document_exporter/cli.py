@@ -62,7 +62,7 @@ def print_document_info(client: BacklogClient, document_id: str) -> None:
 
 
 def download_attachments(
-    client: BacklogClient, document_id: str, output_dir: str
+    client: BacklogClient, document_id: str, output_dir: str = "."
 ) -> None:
     os.makedirs(output_dir, exist_ok=True)
     attachments = client.get_document_attachments(document_id)
@@ -85,7 +85,12 @@ def main() -> None:
         "download", help="Download document attachments"
     )
     dl.add_argument("document_id")
-    dl.add_argument("output", help="Output directory")
+    dl.add_argument(
+        "output",
+        nargs="?",
+        default=".",
+        help="Output directory (default: current directory)",
+    )
 
     args = parser.parse_args()
 

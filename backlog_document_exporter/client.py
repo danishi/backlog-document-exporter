@@ -136,11 +136,16 @@ class BacklogClient:
     def get_document_attachments(
         self, document_id: str
     ) -> List[Dict[str, Any]]:
+        """Return a list of attachments for a document."""
         return self._request("GET", f"/documents/{document_id}/attachments")
 
     def download_attachment(
         self, document_id: str, attachment_id: int, output_dir: str
     ) -> str:
+        """Download an attachment.
+
+        Uses ``GET /api/v2/documents/:documentId/attachments/:attachmentId``.
+        """
         response = self._request(
             "GET",
             f"/documents/{document_id}/attachments/{attachment_id}",

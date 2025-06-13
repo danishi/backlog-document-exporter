@@ -30,8 +30,10 @@ Activate the environment before using the commands below.
 python3 -m backlog_document_exporter.cli list
 python3 -m backlog_document_exporter.cli tree
 python3 -m backlog_document_exporter.cli info <document_id>
-python3 -m backlog_document_exporter.cli download <document_id> <output_dir>
+python3 -m backlog_document_exporter.cli download <document_id> [output_dir]
 ```
+
+If `output_dir` is omitted, files are saved to the current directory.
 
 The ``list`` command automatically fetches all pages of results using the
 required ``offset`` parameter of the Backlog API.
