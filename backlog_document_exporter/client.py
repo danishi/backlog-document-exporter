@@ -70,7 +70,13 @@ class BacklogClient:
             params=params,
             verify=self.verify_ssl,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            message = response.text
+            raise RuntimeError(
+                f"API request failed: {response.status_code} {message}"
+            ) from exc
         if raw:
             return response
         if response.headers.get("Content-Type", "").startswith(
@@ -136,8 +142,18 @@ class BacklogClient:
     def get_document_attachments(
         self, document_id: str
     ) -> List[Dict[str, Any]]:
-        """Return a list of attachments for a document."""
-        return self._request("GET", f"/documents/{document_id}/attachments")
+        """Return a list of attachments for a document.
+
+        The Backlog Document API does not provide a dedicated endpoint for
+        listing attachments. Instead, the attachments array is included in the
+        response of ``GET /api/v2/documents/:documentId``.
+        """
+
+        info = self.get_document_info(document_id)
+        attachments = info.get("attachments", [])
+        if not isinstance(attachments, list):
+            return []
+        return attachments
 
     def download_attachment(
         self, document_id: str, attachment_id: int, output_dir: str
