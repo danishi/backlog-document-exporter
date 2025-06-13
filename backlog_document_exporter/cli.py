@@ -34,9 +34,15 @@ def print_document_tree(client: BacklogClient) -> None:
     def walk(nodes: List[Dict[str, Any]], indent: int = 0) -> List[str]:
         lines = []
         for node in nodes:
-            prefix = "  " * indent + "- " + node.get("name", "")
-            lines.append(prefix)
             children = node.get("children", [])
+            prefix = "  " * indent + "- " + node.get("name", "")
+            if not children and "id" in node:
+                url = (
+                    f"https://{client.space_domain}/document/"
+                    f"{client.project_key}/{node['id']}"
+                )
+                prefix += f" - {url}"
+            lines.append(prefix)
             lines.extend(walk(children, indent + 1))
         return lines
 
