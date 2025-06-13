@@ -18,7 +18,12 @@ def to_markdown_table(items: List[Dict[str, Any]], headers: List[str]) -> str:
 def print_document_list(client: BacklogClient) -> None:
     project_id = client.get_project_id()
     docs = client.get_document_list(project_id)
-    md = to_markdown_table(docs, ["id", "title"])
+    for doc in docs:
+        doc["url"] = (
+            f"https://{client.space_domain}/document/"
+            f"{client.project_key}/{doc['id']}"
+        )
+    md = to_markdown_table(docs, ["id", "title", "url"])
     print(md)
 
 
