@@ -125,6 +125,48 @@ def export_all_documents(client: BacklogClient, output_dir: str = ".") -> None:
         download_attachments(client, doc_id, dir_path)
 
 
+def export_markdown_bundle(
+    client: BacklogClient, output_file: str = "documents.md"
+) -> None:
+    """Export all documents into a single Markdown file.
+
+    The file begins with the document tree followed by each document's
+    title and content in tree order. Attachments are ignored.
+    """
+
+    print("Fetching document tree...")
+    project_id = client.get_project_id()
+    tree = client.get_document_tree(project_id)
+
+    nodes = tree.get("activeTree", {}).get("children", [])
+    tree_lines: List[str] = []
+    docs: List[str] = []
+
+    def gather(nodes: List[Dict[str, Any]], indent: int = 0) -> None:
+        for node in nodes:
+            children = node.get("children", [])
+            tree_lines.append("  " * indent + "- " + node.get("name", ""))
+            if "id" in node:
+                docs.append(str(node["id"]))
+            if children:
+                gather(children, indent + 1)
+
+    gather(nodes)
+
+    print(f"Writing documents to {output_file}...")
+    with open(output_file, "w", encoding="utf-8") as f:
+        for line in tree_lines:
+            f.write(line + "\n")
+        f.write("\n")
+        for doc_id in tqdm(docs, desc="Documents", unit="doc"):
+            info = client.get_document_info(doc_id)
+            title = info.get("title", "")
+            content = info.get("plain", "")
+            f.write(f"# {title}\n\n")
+            f.write(content)
+            f.write("\n\n")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Backlog Document Exporter")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -154,6 +196,16 @@ def main() -> None:
         help="Output directory (default: current directory)",
     )
 
+    export_md = subparsers.add_parser(
+        "export-md", help="Export all documents to a single Markdown file"
+    )
+    export_md.add_argument(
+        "output",
+        nargs="?",
+        default="documents.md",
+        help="Output filename (default: documents.md)",
+    )
+
     args = parser.parse_args()
 
     client = BacklogClient.from_env()
@@ -168,6 +220,8 @@ def main() -> None:
         download_attachments(client, args.document_id, args.output)
     elif args.command == "export":
         export_all_documents(client, args.output)
+    elif args.command == "export-md":
+        export_markdown_bundle(client, args.output)
 
 
 if __name__ == "__main__":
