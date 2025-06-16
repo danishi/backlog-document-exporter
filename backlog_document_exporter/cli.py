@@ -161,7 +161,7 @@ def export_markdown_bundle(
         for doc_id in tqdm(docs, desc="Documents", unit="doc"):
             info = client.get_document_info(doc_id)
             title = info.get("title", "")
-            content = info.get("content") or info.get("text") or ""
+            content = info.get("plain", "")
             f.write(f"# {title}\n\n")
             f.write(content)
             f.write("\n\n")
